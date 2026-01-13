@@ -1,13 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import PDFParser from "pdf-parse-new";
-import { generateText, Output } from "ai";
+import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
+import { createServiceClient } from "@/lib/supabase/service";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const runtime = "nodejs";
+const ResumeSchema = z.object({
+  name: z.string().describe("Full name of the candidate"),
+  email: z
+    .string()
+    .nullable()
+    .describe("Email address if present, or null if not found"),
+  skills: z.array(z.string()).describe("List of skills mentioned"),
+  experience_score: z
+    .number()
+    .min(1)
+    .max(10)
+    .describe("1-10 rating of candidate experience"),
+  summary: z.string().describe("A 2-sentence professional bio"),
+});
+
+function safeFilename(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+}
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "Missing OPENAI_API_KEY" },
+        { status: 500 }
+      );
+    }
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json(
+        { error: "Missing SUPABASE_SERVICE_ROLE_KEY" },
+        { status: 500 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
     if (!file || typeof file === "string") {
@@ -16,34 +50,84 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await (file as File).arrayBuffer());
 
+    // 1) Parse PDF to extract text
     const pdfData = await PDFParser(buffer);
-    const rawText = pdfData.text;
+    const rawText = pdfData.text ?? "";
 
-    const prompt = `Extract the following fields from the resume text.
-Return an object with: name, email, skills (array of strings), experience_score (1-10), and summary (2 sentences).
+    if (!rawText.trim()) {
+      return NextResponse.json(
+        { error: "Could not extract text from PDF" },
+        { status: 400 }
+      );
+    }
 
-Resume text:\n\n${rawText?.slice(0, 15000) ?? ""}`;
-
-    const { output } = await generateText({
+    // 2) LLM structured extraction using generateObject (recommended for structured output)
+    const { object: parsedResume } = await generateObject({
       model: openai("gpt-4o-mini"),
-      output: Output.object({
-        schema: z.object({
-          name: z.string(),
-          email: z.string().email().optional(),
-          skills: z.array(z.string()).default([]),
-          experience_score: z
-            .number()
-            .min(1)
-            .max(10)
-            .describe("1-10 rating of candidate experience"),
-          summary: z.string().describe("A 2-sentence professional bio"),
-        }),
-      }),
-      prompt,
+      schema: ResumeSchema,
+      prompt: `Extract the following fields from this resume text:
+- name: Full name of the candidate
+- email: Email address if present
+- skills: Array of skills mentioned
+- experience_score: Rate the candidate's experience from 1-10
+- summary: Write a 2-sentence professional bio
+
+Resume text:
+${rawText.slice(0, 15000)}`,
     });
 
-    return NextResponse.json({ data: output }, { status: 200 });
+    console.log("[/api/parse] Parsed resume:", parsedResume);
+    // 3) Store parsed JSON in Supabase Storage bucket
+    const supabase = createServiceClient();
+    const fileName = (file as File).name;
+    const storagePath = `parsed/${Date.now()}_${safeFilename(fileName)}.json`;
+
+    const { error: storageError } = await supabase.storage
+      .from("resumes")
+      .upload(storagePath, JSON.stringify(parsedResume, null, 2), {
+        contentType: "application/json",
+        upsert: true,
+      });
+
+    if (storageError) {
+      return NextResponse.json(
+        { error: "Storage upload failed", details: storageError.message },
+        { status: 500 }
+      );
+    }
+
+    // 4) Also persist in DB table for querying
+    // const { error: dbError } = await supabase.from("resumes").insert({
+    //   file_name: fileName,
+    //   storage_path: storagePath,
+    //   parsed_json: parsedResume,
+    //   raw_text: rawText,
+    // });
+
+    // if (dbError) {
+    //   return NextResponse.json(
+    //     { error: "DB insert failed", details: dbError.message },
+    //     { status: 500 }
+    //   );
+    // }
+
+    const { data: _, error: dbError } = await supabase.from("resumes").insert({
+      file_name: fileName,
+      parsed_json: parsedResume,
+      raw_text: rawText,
+    });
+
+    if (dbError) {
+      console.error("[/api/parse] DB insert error:", dbError);
+      // Not failing the request since storage succeeded.
+    }
+
+    return NextResponse.json(
+      { data: parsedResume, storagePath },
+      { status: 200 }
+    );
   } catch (error) {
+    console.error("[/api/parse] Error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

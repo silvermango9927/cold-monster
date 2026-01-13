@@ -1,39 +1,40 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function Day1Page() {
   const [status, setStatus] = useState("");
+  const [isWorking, setIsWorking] = useState(false);
 
   const processResume = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setStatus("Uploading to Storage...");
-    const { data: uploadData } = await supabase.storage
-      .from("resumes")
-      .upload(`public/${Date.now()}_${file.name}`, file);
+    try {
+      setStatus("AI Parsing in progress...");
+      setIsWorking(true);
+      const formData = new FormData();
+      formData.append("file", file);
 
-    setStatus("AI Parsing in progress...");
-    const formData = new FormData();
-    formData.append("file", file);
+      const res = await fetch("/api/parse", {
+        method: "POST",
+        body: formData,
+      });
 
-    const res = await fetch("/api/parse", { method: "POST", body: formData });
-    const { parsed, rawText } = await res.json();
+      const payload = await res.json();
+      const { error, storagePath } = payload ?? {};
+      if (!res.ok || error) {
+        throw new Error(error || "Parsing failed");
+      }
 
-    setStatus("Saving to DB...");
-    await supabase.from("resumes").insert({
-      file_name: file.name,
-      parsed_json: parsed,
-      raw_text: rawText,
-    });
-
-    setStatus("Complete! Ready for Day 2.");
+      setStatus(`Done! Parsed JSON stored at: ${storagePath ?? "(unknown)"}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setStatus(`Error: ${message}`);
+    } finally {
+      setIsWorking(false);
+      // Allow re-uploading the same file by resetting the input.
+      e.target.value = "";
+    }
   };
 
   return (
@@ -42,7 +43,9 @@ export default function Day1Page() {
       <div className="border-2 border-dashed p-10 rounded-lg text-center">
         <input
           type="file"
+          accept="application/pdf"
           onChange={processResume}
+          disabled={isWorking}
           className="cursor-pointer"
         />
         <p className="mt-4 text-sm text-gray-500">{status}</p>
