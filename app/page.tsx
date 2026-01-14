@@ -15,6 +15,14 @@ interface ResearchData {
   recentProjects: string[];
   idealCandidateTraits: string[];
   techStack: string[];
+  targetRole: string;
+  keyPeople?: { firstName: string; lastName: string; role: string | null }[];
+  contact?: {
+    name: string;
+    email: string;
+    position: string;
+    verified: boolean;
+  } | null;
 }
 
 export default function Day1Page() {
@@ -171,6 +179,64 @@ export default function Day1Page() {
             <p>
               <strong>Tech Stack:</strong> {researchData.techStack.join(", ")}
             </p>
+            <p>
+              <strong>Target Role:</strong> {researchData.targetRole}
+            </p>
+            {researchData.keyPeople && researchData.keyPeople.length > 0 && (
+              <p>
+                <strong>Key People:</strong>{" "}
+                {researchData.keyPeople
+                  .map(
+                    (p) =>
+                      `${p.firstName} ${p.lastName}${
+                        p.role ? ` (${p.role})` : ""
+                      }`
+                  )
+                  .join(", ")}
+              </p>
+            )}
+            {researchData.contact && (
+              <div
+                className={`mt-3 border-t pt-2 p-2 rounded ${
+                  researchData.contact.verified ? "bg-green-50" : "bg-yellow-50"
+                }`}
+              >
+                <p
+                  className={`font-semibold ${
+                    researchData.contact.verified
+                      ? "text-green-800"
+                      : "text-yellow-800"
+                  }`}
+                >
+                  📧 Email Contact{" "}
+                  {researchData.contact.verified
+                    ? "✓ Verified"
+                    : "⚠ Unverified"}
+                </p>
+                <p>
+                  <strong>Name:</strong> {researchData.contact.name}
+                </p>
+                <p>
+                  <strong>Email:</strong>{" "}
+                  <a
+                    href={`mailto:${researchData.contact.email}`}
+                    className="text-blue-600 underline"
+                  >
+                    {researchData.contact.email}
+                  </a>
+                </p>
+                <p>
+                  <strong>Position:</strong> {researchData.contact.position}
+                </p>
+              </div>
+            )}
+            {!researchData.contact && (
+              <div className="mt-3 border-t pt-2 p-2 rounded bg-gray-50">
+                <p className="text-gray-600">
+                  No email contact found for this company.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

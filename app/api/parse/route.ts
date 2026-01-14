@@ -111,7 +111,7 @@ ${rawText.slice(0, 15000)}`,
     //   );
     // }
 
-    const { data: _, error: dbError } = await supabase.from("resumes").insert({
+    const { error: dbError } = await supabase.from("resumes").insert({
       file_name: fileName,
       parsed_json: parsedResume,
       raw_text: rawText,
