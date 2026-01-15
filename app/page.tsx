@@ -160,6 +160,7 @@ export default function ScholarReachPage() {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [researchData, setResearchData] = useState<ResearchData | null>(null);
   const [targetUrl, setTargetUrl] = useState("");
+  const [targetRole, setTargetRole] = useState("");
 
   // Loading states
   const [isUploadingResume, setIsUploadingResume] = useState(false);
@@ -263,6 +264,7 @@ export default function ScholarReachPage() {
         targetIntel: researchData,
         pocName: researchData.contact?.name || "Hiring Team",
         tone: tone || "casual",
+        targetRole: targetRole || "Software Engineer",
       };
       console.log("[Frontend] Request body:", requestBody);
 
@@ -630,25 +632,38 @@ export default function ScholarReachPage() {
               <CardContent>
                 {!researchData ? (
                   <div className="space-y-4">
-                    <div className="flex gap-2">
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block">Target Role</label>
                       <Input
-                        type="url"
-                        placeholder="https://startup.com"
-                        value={targetUrl}
-                        onChange={(e) => setTargetUrl(e.target.value)}
+                        type="text"
+                        placeholder="e.g., Software Engineer, Product Manager, Data Scientist"
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
                         disabled={isResearching}
-                        className="flex-1"
+                        className="mb-3"
                       />
-                      <Button
-                        onClick={handleResearch}
-                        disabled={isResearching || !targetUrl.trim()}
-                      >
-                        {isResearching ? "Researching..." : "Research"}
-                      </Button>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block">Company Website</label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="url"
+                          placeholder="https://startup.com"
+                          value={targetUrl}
+                          onChange={(e) => setTargetUrl(e.target.value)}
+                          disabled={isResearching}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={handleResearch}
+                          disabled={isResearching || !targetUrl.trim()}
+                        >
+                          {isResearching ? "Researching..." : "Research"}
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Enter the company&apos;s website URL to analyze their
-                      mission, tech stack, and find decision-makers.
+                      Enter the role you&apos;re applying for and the company&apos;s website URL.
                     </p>
                   </div>
                 ) : (

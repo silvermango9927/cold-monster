@@ -8,13 +8,14 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { resumeData, targetIntel, pocName, tone } = body;
+    const { resumeData, targetIntel, pocName, tone, targetRole } = body;
 
     console.log("[Generate] Received request:", {
       hasResumeData: !!resumeData,
       hasTargetIntel: !!targetIntel,
       pocName,
       tone,
+      targetRole,
     });
 
     if (!resumeData || !targetIntel) {
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
       prompt: `
       CANDIDATE: ${JSON.stringify(resumeData)}
       STARTUP INTEL: ${JSON.stringify(targetIntel)}
+      TARGET ROLE: ${targetRole || "Software Engineer"}
       RECIPIENT: ${pocName}
     `,
     });

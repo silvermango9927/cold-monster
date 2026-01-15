@@ -14,7 +14,10 @@ const ResumeSchema = z.object({
     .string()
     .nullable()
     .describe("Email address if present, or null if not found"),
-  skills: z.array(z.string()).describe("List of skills mentioned"),
+  skills: z.array(z.string()).describe("List of skills/technologies mentioned"),
+  key_experiences: z
+    .string()
+    .describe("Summary of key professional experiences"),
   experience_score: z
     .number()
     .min(1)
