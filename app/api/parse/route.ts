@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
+import { prompts } from "@/lib/prompts";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -65,12 +66,7 @@ export async function POST(req: NextRequest) {
     const { object: parsedResume } = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: ResumeSchema,
-      prompt: `Extract the following fields from this resume text:
-- name: Full name of the candidate
-- email: Email address if present
-- skills: Array of skills mentioned
-- experience_score: Rate the candidate's experience from 1-10
-- summary: Write a 2-sentence professional bio
+      prompt: `${prompts.resumeParse}
 
 Resume text:
 ${rawText.slice(0, 15000)}`,
