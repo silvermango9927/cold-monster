@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
     const { object: intel } = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: ResearchSchema,
-      prompt: `${prompts.researchExtract}
+      prompt: `${prompts.RESEARCH_EXTRACT}
 
 Scraped markdown:
 ${combinedMarkdown}`,

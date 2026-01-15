@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     const { object: parsedResume } = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: ResumeSchema,
-      prompt: `${prompts.resumeParse}
+      prompt: `${prompts.RESUME_PARSE}
 
 Resume text:
 ${rawText.slice(0, 15000)}`,

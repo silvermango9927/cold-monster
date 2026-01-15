@@ -1,7 +1,7 @@
 import { generateText, Output } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
-import { getEmailPrompt } from "@/lib/prompts";
+import { getPrompt } from "@/lib/prompts";
 
 export async function POST(req: Request) {
   console.log("[Generate] Starting email generation...");
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     console.log("[Generate] Calling OpenAI...");
 
-    const systemPrompt = getEmailPrompt(tone);
+    const systemPrompt = getPrompt(tone);
     console.log("[Generate] Using system prompt:", systemPrompt);
 
     const { output } = await generateText({
