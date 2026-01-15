@@ -122,6 +122,129 @@ const Icons = {
     </svg>
   ),
 };
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+
+// Icons (inline SVGs for simplicity)
+const Icons = {
+  upload: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+      />
+    </svg>
+  ),
+  search: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
+    </svg>
+  ),
+  sparkles: (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+      />
+    </svg>
+  ),
+  refresh: (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
+    </svg>
+  ),
+  send: (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+      />
+    </svg>
+  ),
+  check: (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+  ),
+  mail: (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+      />
+    </svg>
+  ),
+};
 
 interface ResumeData {
   name: string;
@@ -157,7 +280,18 @@ type AppStep = "setup" | "compose";
 export default function ScholarReachPage() {
   // Setup state
   const [step, setStep] = useState<AppStep>("setup");
+interface EmailDraft {
+  subject: string;
+  body: string;
+}
+
+type AppStep = "setup" | "compose";
+
+export default function ScholarReachPage() {
+  // Setup state
+  const [step, setStep] = useState<AppStep>("setup");
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
+  const [researchData, setResearchData] = useState<ResearchData | null>(null);
   const [researchData, setResearchData] = useState<ResearchData | null>(null);
   const [targetUrl, setTargetUrl] = useState("");
   const [targetRole, setTargetRole] = useState("");
@@ -179,10 +313,25 @@ export default function ScholarReachPage() {
 
   // Handle resume upload
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+
+  // Email state
+  const [emailDraft, setEmailDraft] = useState<EmailDraft | null>(null);
+  const [editedSubject, setEditedSubject] = useState("");
+  const [editedBody, setEditedBody] = useState("");
+
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // Handle resume upload
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
+      setIsUploadingResume(true);
       setIsUploadingResume(true);
       const formData = new FormData();
       formData.append("file", file);
@@ -195,14 +344,20 @@ export default function ScholarReachPage() {
       const payload = await res.json();
       if (!res.ok || payload.error) {
         throw new Error(payload.error || "Failed to parse resume");
+      if (!res.ok || payload.error) {
+        throw new Error(payload.error || "Failed to parse resume");
       }
 
+      setResumeData(payload.data);
+      toast.success("Resume parsed successfully!");
       setResumeData(payload.data);
       toast.success("Resume parsed successfully!");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast.error(`Resume upload failed: ${message}`);
+      toast.error(`Resume upload failed: ${message}`);
     } finally {
+      setIsUploadingResume(false);
       setIsUploadingResume(false);
       e.target.value = "";
     }
@@ -210,7 +365,10 @@ export default function ScholarReachPage() {
 
   // Handle target research
   const handleResearch = async () => {
+  // Handle target research
+  const handleResearch = async () => {
     if (!targetUrl.trim()) {
+      toast.error("Please enter a target URL");
       toast.error("Please enter a target URL");
       return;
     }
@@ -230,8 +388,10 @@ export default function ScholarReachPage() {
 
       setResearchData(payload);
       toast.success("Research complete!");
+      toast.success("Research complete!");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Research failed: ${message}`);
       toast.error(`Research failed: ${message}`);
     } finally {
       setIsResearching(false);
@@ -1071,6 +1231,7 @@ export default function ScholarReachPage() {
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>
