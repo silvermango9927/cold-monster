@@ -22,13 +22,13 @@ export async function POST(req: Request) {
       console.log("[Generate] Missing required data");
       return Response.json(
         { error: "Missing resumeData or targetIntel" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.log("[Generate] Calling OpenAI...");
 
-    const systemPrompt = getPrompt(tone);
+    const systemPrompt = getPrompt("EMAIL_SYSTEM");
     console.log("[Generate] Using system prompt:", systemPrompt);
 
     const { output } = await generateText({
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       console.log("[Generate] Invalid output from OpenAI:", output);
       return Response.json(
         { error: "Failed to generate email - invalid response from AI" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 

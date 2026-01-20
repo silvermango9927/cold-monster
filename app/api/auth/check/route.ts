@@ -22,6 +22,7 @@ export async function GET() {
       hasGoogleToken,
       user: user
         ? {
+            id: user.id,
             email: user.email,
             name: user.user_metadata?.full_name || user.email,
           }

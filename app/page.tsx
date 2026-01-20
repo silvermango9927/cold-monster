@@ -167,6 +167,7 @@ export default function ScholarReachPage() {
   const [isResearching, setIsResearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   // Email state
   const [emailDraft, setEmailDraft] = useState<EmailDraft | null>(null);
@@ -198,7 +199,14 @@ export default function ScholarReachPage() {
       }
 
       setResumeData(payload.data);
-      toast.success("Resume parsed successfully!");
+
+      if (payload.savedToProfile) {
+        toast.success("Resume parsed and saved to your profile!");
+      } else if (isAuthenticated) {
+        toast.success("Resume parsed! Sign in to save it for future sessions.");
+      } else {
+        toast.success("Resume parsed successfully!");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast.error(`Resume upload failed: ${message}`);
@@ -249,7 +257,7 @@ export default function ScholarReachPage() {
         "[Frontend] Missing data - resumeData:",
         !!resumeData,
         "researchData:",
-        !!researchData
+        !!researchData,
       );
       toast.error("Please complete setup first");
       return;
@@ -330,6 +338,7 @@ export default function ScholarReachPage() {
       if (payload.success) {
         setIsAuthenticated(false);
         setUserEmail(null);
+        setResumeData(null); // Clear resume data on sign out
         toast.success("Signed out successfully");
       } else {
         throw new Error(payload.error || "Failed to sign out");
@@ -340,14 +349,43 @@ export default function ScholarReachPage() {
     }
   }, []);
 
+  // Load saved profile (resume) for authenticated user
+  const loadSavedProfile = async (): Promise<ResumeData | null> => {
+    try {
+      setIsLoadingProfile(true);
+      const res = await fetch("/api/profile");
+      const data = await res.json();
+
+      if (data.profile?.resumeData) {
+        console.log("[Frontend] Loaded saved resume from profile");
+        return data.profile.resumeData as ResumeData;
+      }
+      return null;
+    } catch (err) {
+      console.error("[Frontend] Failed to load profile:", err);
+      return null;
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
   // Check auth status on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/check");
         const data = await res.json();
-        setIsAuthenticated(data.authenticated && data.hasGoogleToken);
+        const isAuth = data.authenticated && data.hasGoogleToken;
+        setIsAuthenticated(isAuth);
         setUserEmail(data.user?.email || null);
+
+        // If authenticated, try to load saved profile
+        if (isAuth) {
+          const savedResume = await loadSavedProfile();
+          if (savedResume) {
+            setResumeData(savedResume);
+          }
+        }
       } catch (err) {
         console.error("Auth check failed:", err);
       }
@@ -357,7 +395,7 @@ export default function ScholarReachPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("auth") === "success") {
       toast.success("Signed in with Google!");
-      checkAuth(); // Refresh auth state
+      checkAuth(); // Refresh auth state (will also load profile)
       // Clean up URL
       window.history.replaceState({}, "", window.location.pathname);
     } else if (params.get("error") === "auth_failed") {
@@ -420,7 +458,7 @@ export default function ScholarReachPage() {
     console.log("[Frontend] Checking researchData:", !!researchData);
     console.log(
       "[Frontend] Checking contact email:",
-      researchData?.contact?.email
+      researchData?.contact?.email,
     );
 
     if (!resumeData) {
@@ -449,8 +487,8 @@ export default function ScholarReachPage() {
           <div className="flex justify-between items-start mb-12">
             <div className="flex-1" />
             <div className="text-center flex-1">
-              <h1 className="text-4xl font-bold tracking-tight mb-2">
-                ScholarReach
+              <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
+                Colsen
               </h1>
               <p className="text-muted-foreground text-lg">
                 AI-powered cold outreach for CS students
@@ -525,13 +563,24 @@ export default function ScholarReachPage() {
                       1. Upload Your Resume
                     </CardTitle>
                     <CardDescription>
-                      We&apos;ll extract your skills and experience
+                      {isAuthenticated
+                        ? "Your resume will be saved for future sessions"
+                        : "We'll extract your skills and experience"}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                {!resumeData ? (
+                {isLoadingProfile ? (
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <span className="font-medium text-muted-foreground">
+                        Loading your saved resume...
+                      </span>
+                    </div>
+                  </div>
+                ) : !resumeData ? (
                   <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                     <input
                       type="file"

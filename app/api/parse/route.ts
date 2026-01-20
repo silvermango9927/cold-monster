@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createClient } from "@/lib/supabase/server";
 import { prompts } from "@/lib/prompts";
 import dotenv from "dotenv";
 dotenv.config();
@@ -35,14 +36,14 @@ export async function POST(req: NextRequest) {
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
         { error: "Missing OPENAI_API_KEY" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json(
         { error: "Missing SUPABASE_SERVICE_ROLE_KEY" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (!rawText.trim()) {
       return NextResponse.json(
         { error: "Could not extract text from PDF" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -91,7 +92,7 @@ ${rawText.slice(0, 15000)}`,
     if (storageError) {
       return NextResponse.json(
         { error: "Storage upload failed", details: storageError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -121,9 +122,49 @@ ${rawText.slice(0, 15000)}`,
       // Not failing the request since storage succeeded.
     }
 
+    // 5) If user is authenticated, save to their profile for future retrieval
+    let savedToProfile = false;
+    try {
+      const authClient = await createClient();
+      const {
+        data: { session },
+      } = await authClient.auth.getSession();
+
+      if (session?.user) {
+        const userId = session.user.id;
+        const userEmail = session.user.email;
+
+        const { error: profileError } = await supabase
+          .from("user_profiles")
+          .upsert(
+            {
+              user_id: userId,
+              user_email: userEmail,
+              resume_data: parsedResume,
+              file_name: fileName,
+              raw_text: rawText,
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: "user_id",
+            },
+          );
+
+        if (profileError) {
+          console.error("[/api/parse] Profile save error:", profileError);
+        } else {
+          console.log("[/api/parse] Saved resume to user profile:", userId);
+          savedToProfile = true;
+        }
+      }
+    } catch (profileSaveError) {
+      console.error("[/api/parse] Profile save error:", profileSaveError);
+      // Don't fail the request - profile saving is optional
+    }
+
     return NextResponse.json(
-      { data: parsedResume, storagePath },
-      { status: 200 }
+      { data: parsedResume, storagePath, savedToProfile },
+      { status: 200 },
     );
   } catch (error) {
     console.error("[/api/parse] Error:", error);
