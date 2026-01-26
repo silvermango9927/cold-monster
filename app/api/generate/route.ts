@@ -27,7 +27,6 @@ export async function POST(req: Request) {
     }
 
     console.log("[Generate] Calling OpenAI...");
-
     const systemPrompt = getPrompt("EMAIL_SYSTEM");
     console.log("[Generate] Using system prompt:", systemPrompt);
 

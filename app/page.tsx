@@ -488,22 +488,22 @@ export default function ScholarReachPage() {
             <div className="flex-1" />
             <div className="text-center flex-1">
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
-                Colsen
+                Cold Monster
               </h1>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-gray-200 text-medium">
                 AI-powered cold outreach for CS students
               </p>
             </div>
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex justify-end text-gray-500">
               {isAuthenticated ? (
                 <div className="flex items-center gap-2 text-sm">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-muted-foreground">{userEmail}</span>
+                  <span className="text-gray-500">{userEmail}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={signOut}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-gray-500 hover:text-foreground"
                   >
                     Sign Out
                   </Button>
@@ -558,7 +558,7 @@ export default function ScholarReachPage() {
                       </span>
                     )}
                   </div>
-                  <div>
+                  <div className="text-gray-200">
                     <CardTitle className="text-xl">
                       1. Upload Your Resume
                     </CardTitle>
@@ -608,7 +608,7 @@ export default function ScholarReachPage() {
                     </label>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3 text-gray-200">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-lg">
                         {resumeData.name}
@@ -617,17 +617,17 @@ export default function ScholarReachPage() {
                         Score: {resumeData.experience_score}/10
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-300">
                       {resumeData.summary}
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 text-gray-400">
                       {resumeData.skills.slice(0, 6).map((skill) => (
-                        <Badge key={skill} variant="outline">
+                        <Badge key={skill} variant="outline" className="text-black bg-gray-300">
                           {skill}
                         </Badge>
                       ))}
                       {resumeData.skills.length > 6 && (
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-black bg-gray-300">
                           +{resumeData.skills.length - 6} more
                         </Badge>
                       )}
@@ -636,7 +636,7 @@ export default function ScholarReachPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setResumeData(null)}
-                      className="text-muted-foreground"
+                      className="text-gray-400"
                     >
                       Upload different resume
                     </Button>

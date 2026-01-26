@@ -51,7 +51,7 @@ The email should:
 
 Adjust the tone based on the specified setting (formal, casual, or balanced).
 The format should be a short paragraph with an intro and purpose (casual), a small paragraph about how you can add value with your skills to their work, and a small paragraph about wanting to connect with them and how you're interested
-LESS IS MORE. WRITE ONLY AROUND 80-100 WORDS. THIS IS THE MSOT IMPORTANT.
+LESS IS MORE. WRITE ONLY AROUND 200 WORDS. THIS IS THE MOST IMPORTANT.
 `,
 };
 
