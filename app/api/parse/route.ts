@@ -111,10 +111,25 @@ ${rawText.slice(0, 15000)}`,
     //   );
     // }
 
+    // Get the authenticated user's email to associate with the resume
+    let userEmailForResume: string | null = null;
+    try {
+      const authClient = await createClient();
+      const {
+        data: { session },
+      } = await authClient.auth.getSession();
+      if (session?.user?.email) {
+        userEmailForResume = session.user.email;
+      }
+    } catch (authError) {
+      console.error("[/api/parse] Auth check error:", authError);
+    }
+
     const { error: dbError } = await supabase.from("resumes").insert({
       file_name: fileName,
       parsed_json: parsedResume,
       raw_text: rawText,
+      email: userEmailForResume,
     });
 
     if (dbError) {

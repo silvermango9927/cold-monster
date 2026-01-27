@@ -40,6 +40,17 @@ export async function POST(req: Request) {
 
     const gmail = google.gmail({ version: "v1", auth });
 
+    // Convert plain text line breaks to HTML for proper formatting in Gmail
+    // Split by double newlines to create paragraphs, then handle single newlines as <br>
+    const htmlBody = body
+      .split(/\n\n+/)  // Split by paragraph breaks (2+ newlines)
+      .map((paragraph: string) => {
+        // Convert single newlines within paragraphs to <br>
+        const formattedParagraph = paragraph.trim().replace(/\n/g, '<br>');
+        return `<p style="margin: 0 0 1em 0;">${formattedParagraph}</p>`;
+      })
+      .join('');
+
     // The Gmail API expects a RFC 2822 formatted string encoded in base64url
     const messageParts = [
       `To: ${recipient}`,
@@ -47,7 +58,7 @@ export async function POST(req: Request) {
       "Content-Type: text/html; charset=utf-8",
       "MIME-Version: 1.0",
       "",
-      body,
+      htmlBody,
     ];
     const message = messageParts.join("\n");
 

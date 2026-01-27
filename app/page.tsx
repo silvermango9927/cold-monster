@@ -488,10 +488,10 @@ export default function ScholarReachPage() {
             <div className="flex-1" />
             <div className="text-center flex-1">
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
-                Cold Monster
+                ColdSnap
               </h1>
               <p className="text-gray-200 text-medium">
-                AI-powered cold outreach for CS students
+                AI-powered cold outreach for students
               </p>
             </div>
             <div className="flex-1 flex justify-end text-gray-500">

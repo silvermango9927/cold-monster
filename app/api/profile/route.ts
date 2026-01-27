@@ -29,8 +29,30 @@ export async function GET() {
       .single();
 
     if (profileError) {
-      // No profile found is not an error - user just hasn't uploaded yet
+      // No profile found in user_profiles - try resumes table by email
       if (profileError.code === "PGRST116") {
+        const userEmail = session.user.email;
+        if (userEmail) {
+          // Try to find a resume by email in the resumes table
+          const { data: resumeByEmail, error: resumeError } = await serviceClient
+            .from("resumes")
+            .select("*")
+            .eq("email", userEmail)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (!resumeError && resumeByEmail) {
+            console.log("[Profile GET] Found resume by email in resumes table");
+            return NextResponse.json({
+              profile: {
+                resumeData: resumeByEmail.parsed_json,
+                uploadedAt: resumeByEmail.created_at,
+                fileName: resumeByEmail.file_name,
+              },
+            });
+          }
+        }
         return NextResponse.json({ profile: null });
       }
       console.error("[Profile GET] Error:", profileError);
