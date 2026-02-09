@@ -43,7 +43,7 @@ Your task is to completely rewrite the following text to be 100% undetectable by
 - Ensure the rewrite sounds like it came from a real person with authentic voice
 - Make it feel like natural human communication, not polished AI output
 - Include at least 2-3 instances of slightly imperfect but natural phrasing
-- Aim for high perplexity (unpredictable word choices) and high burstiness (varied sentence structures)
+- Have human-like errors, sentence phrasing and sentence lengths/structure
 
 CRITICAL: Never use "I hope this finds you well" or "As a student at NUS..."
 `,
