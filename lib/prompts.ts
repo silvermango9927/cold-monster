@@ -71,7 +71,7 @@ Are you free for a 15 minute call to chat more about your research areas and way
 
 
 
-Above are some examples of cool short emails. Adapt findings and patterns from these into a good cold email
+Above are some examples of cool short emails. Adapt findings and patterns from these into a good cold email. Don't over-explain, every point you make should be clear and concise and unique.
 `,
 
   EMAIL_USER: `Write a cold outreach email for a university student within 100-130 words based on the following information.
@@ -86,7 +86,7 @@ The email should:
 
 Adjust the tone based on the specified setting (formal, casual, or balanced).
 The format should be a short paragraph with an intro and purpose (casual), a small paragraph about how you can add value with your skills to their work, and a small paragraph about wanting to connect with them and how you're interested
-LESS IS MORE. WRITE ONLY AROUND 200 WORDS. THIS IS THE MOST IMPORTANT.
+LESS IS MORE.
 `,
 };
 
