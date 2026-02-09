@@ -46,7 +46,7 @@ interface HunterEmail {
 type Contact = {
   name: string;
   email: string;
-  position: string;
+  position?: string;
   verified: boolean;
 };
 
@@ -521,7 +521,7 @@ ${combinedMarkdown}`,
                 `${best.first_name || ""} ${best.last_name || ""}`.trim() ||
                 "Contact",
               email: best.value,
-              position: best.position || intel.targetRole,
+              position: best.position || undefined,
               verified: verification.valid,
             };
 
@@ -583,7 +583,7 @@ ${combinedMarkdown}`,
               contact = {
                 name: `${person.firstName} ${person.lastName}`,
                 email: found.email,
-                position: person.role || intel.targetRole,
+                position: person.role || undefined,
                 verified: verification.valid,
               };
               console.log(

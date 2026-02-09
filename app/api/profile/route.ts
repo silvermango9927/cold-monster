@@ -19,56 +19,62 @@ export async function GET() {
     }
 
     const userId = session.user.id;
-
-    // Query the user_profiles table for the user's saved resume
+    const userEmail = session.user.email;
     const serviceClient = createServiceClient();
-    const { data: profile, error: profileError } = await serviceClient
-      .from("user_profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
 
-    if (profileError) {
-      // No profile found in user_profiles - try resumes table by email
-      if (profileError.code === "PGRST116") {
-        const userEmail = session.user.email;
-        if (userEmail) {
-          // Try to find a resume by email in the resumes table
-          const { data: resumeByEmail, error: resumeError } = await serviceClient
-            .from("resumes")
-            .select("*")
-            .eq("email", userEmail)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
+    // First, try to find a resume by email in the resumes table (most reliable)
+    if (userEmail) {
+      const { data: resumeByEmail, error: resumeError } = await serviceClient
+        .from("resumes")
+        .select("*")
+        .eq("email", userEmail)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
 
-          if (!resumeError && resumeByEmail) {
-            console.log("[Profile GET] Found resume by email in resumes table");
-            return NextResponse.json({
-              profile: {
-                resumeData: resumeByEmail.parsed_json,
-                uploadedAt: resumeByEmail.created_at,
-                fileName: resumeByEmail.file_name,
-              },
-            });
-          }
-        }
-        return NextResponse.json({ profile: null });
+      if (!resumeError && resumeByEmail) {
+        console.log("[Profile GET] Found resume by email in resumes table");
+        return NextResponse.json({
+          profile: {
+            resumeData: resumeByEmail.parsed_json,
+            uploadedAt: resumeByEmail.created_at,
+            fileName: resumeByEmail.file_name,
+          },
+        });
       }
-      console.error("[Profile GET] Error:", profileError);
-      return NextResponse.json(
-        { error: "Failed to fetch profile" },
-        { status: 500 },
-      );
+      
+      // Log if there was an error other than "no rows found"
+      if (resumeError && resumeError.code !== "PGRST116") {
+        console.log("[Profile GET] Resumes table error:", resumeError.code, resumeError.message);
+      }
     }
 
-    return NextResponse.json({
-      profile: {
-        resumeData: profile.resume_data,
-        uploadedAt: profile.updated_at,
-        fileName: profile.file_name,
-      },
-    });
+    // Fallback: try user_profiles table if it exists
+    try {
+      const { data: profile, error: profileError } = await serviceClient
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (!profileError && profile) {
+        console.log("[Profile GET] Found profile in user_profiles table");
+        return NextResponse.json({
+          profile: {
+            resumeData: profile.resume_data,
+            uploadedAt: profile.updated_at,
+            fileName: profile.file_name,
+          },
+        });
+      }
+    } catch {
+      // user_profiles table might not exist, that's okay
+      console.log("[Profile GET] user_profiles table not available");
+    }
+
+    // No profile found
+    console.log("[Profile GET] No saved resume found for user");
+    return NextResponse.json({ profile: null });
   } catch (error) {
     console.error("[Profile GET] Error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";

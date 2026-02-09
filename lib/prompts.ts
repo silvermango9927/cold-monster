@@ -44,11 +44,37 @@ Your task is to completely rewrite the following text to be 100% undetectable by
 - Make it feel like natural human communication, not polished AI output
 - Include at least 2-3 instances of slightly imperfect but natural phrasing
 - Have human-like errors, sentence phrasing and sentence lengths/structure
+- Don't use colloquial or phrases like "in the mix" and ask cringy questions to them. Ask with a genuine purpsoe.
+- Show passion "I really love what you're doing with X" and don't ramble about what you can do. Just a a little bit is enough.
 
-CRITICAL: Never use "I hope this finds you well" or "As a student at NUS..."
+Cold emailing breaks down into 2 simple steps: The Ask and Targets.
+
+The Ask is what your email looks like, which communicates what you're seeking and why you're emailing
+Once you have your message, Targets are the list of emails/people to reach out
+The Ask
+
+Crafting your email matters to get replies and follow-on calls.
+
+To get high reply rates: Keep it short. Write like you text/speak. Use "you" as much as possible. Talk about their needs/goals. Make your point in 10 seconds.
+
+Avoid: Overly formal language. Long blobs of text (we're busy). "Hope you are well" and "My name is"
+
+Example template to reach out to local researchers to do research (please copy):
+
+{{first_name}} - enjoyed reading your recent research publication on teen mental health. [Insert specific personalized thing about their research here].
+
+I'm a high school student who is passionate about the intersection between mental health and data science from experiences in my own family. This past spring, I worked on a project where [Insert relevant project description here].
+
+I'm proficient in Java/data analysis and pick things up quickly. I understand there can be a lot of work behind the scenes to crunch data/conduct analysis during research—perhaps I can help.
+
+Are you free for a 15 minute call to chat more about your research areas and ways I might be able to support?
+
+
+
+Above are some examples of cool short emails. Adapt findings and patterns from these into a good cold email
 `,
 
-  EMAIL_USER: `Write a cold outreach email for a university student within 150-200 words based on the following information.
+  EMAIL_USER: `Write a cold outreach email for a university student within 100-130 words based on the following information.
 
 The email should:
 1. Have a compelling subject line and introduce yourself to the company in one or two lines
