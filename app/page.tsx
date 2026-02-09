@@ -158,6 +158,7 @@ export default function ScholarReachPage() {
   // Setup state
   const [step, setStep] = useState<AppStep>("setup");
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
+  const [resumeSource, setResumeSource] = useState<"upload" | "cached" | null>(null);
   const [researchData, setResearchData] = useState<ResearchData | null>(null);
   const [targetUrl, setTargetUrl] = useState("");
   const [targetRole, setTargetRole] = useState("");
@@ -199,6 +200,7 @@ export default function ScholarReachPage() {
       }
 
       setResumeData(payload.data);
+      setResumeSource("upload");
 
       if (payload.savedToProfile) {
         toast.success("Resume parsed and saved to your profile!");
@@ -384,6 +386,11 @@ export default function ScholarReachPage() {
           const savedResume = await loadSavedProfile();
           if (savedResume) {
             setResumeData(savedResume);
+            setResumeSource("cached");
+            toast.success("Resume loaded from your account!", {
+              description: "No need to re-upload. We saved your parsed resume.",
+              duration: 4000,
+            });
           }
         }
       } catch (err) {
@@ -487,23 +494,23 @@ export default function ScholarReachPage() {
           <div className="flex justify-between items-start mb-12">
             <div className="flex-1" />
             <div className="text-center flex-1">
-              <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
                 ColdSnap
               </h1>
-              <p className="text-gray-200 text-medium">
+              <p className="text-muted-foreground text-medium">
                 AI-powered cold outreach for students
               </p>
             </div>
-            <div className="flex-1 flex justify-end text-gray-500">
+            <div className="flex-1 flex justify-end">
               {isAuthenticated ? (
                 <div className="flex items-center gap-2 text-sm">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  <span className="text-gray-500">{userEmail}</span>
+                  <span className="text-muted-foreground">{userEmail}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={signOut}
-                    className="text-gray-500 hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     Sign Out
                   </Button>
@@ -537,11 +544,11 @@ export default function ScholarReachPage() {
           <div className="space-y-6">
             {/* Step 1: Resume Upload */}
             <Card
-              className={
+              className={`transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 ${
                 resumeData
                   ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20"
-                  : ""
-              }
+                  : "hover:border-primary/30"
+              }`}
             >
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -558,7 +565,7 @@ export default function ScholarReachPage() {
                       </span>
                     )}
                   </div>
-                  <div className="text-gray-200">
+                  <div>
                     <CardTitle className="text-xl">
                       1. Upload Your Resume
                     </CardTitle>
@@ -608,26 +615,33 @@ export default function ScholarReachPage() {
                     </label>
                   </div>
                 ) : (
-                  <div className="space-y-3 text-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-lg">
-                        {resumeData.name}
-                      </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-lg text-foreground">
+                          {resumeData.name}
+                        </span>
+                        {resumeSource === "cached" && (
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                            ✓ Loaded from account
+                          </Badge>
+                        )}
+                      </div>
                       <Badge variant="secondary">
                         Score: {resumeData.experience_score}/10
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-300">
+                    <p className="text-sm text-muted-foreground">
                       {resumeData.summary}
                     </p>
-                    <div className="flex flex-wrap gap-2 text-gray-400">
+                    <div className="flex flex-wrap gap-2">
                       {resumeData.skills.slice(0, 6).map((skill) => (
-                        <Badge key={skill} variant="outline" className="text-black bg-gray-300">
+                        <Badge key={skill} variant="outline" className="bg-muted/50">
                           {skill}
                         </Badge>
                       ))}
                       {resumeData.skills.length > 6 && (
-                        <Badge variant="outline" className="text-black bg-gray-300">
+                        <Badge variant="outline" className="bg-muted/50">
                           +{resumeData.skills.length - 6} more
                         </Badge>
                       )}
@@ -635,8 +649,11 @@ export default function ScholarReachPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setResumeData(null)}
-                      className="text-gray-400"
+                      onClick={() => {
+                        setResumeData(null);
+                        setResumeSource(null);
+                      }}
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       Upload different resume
                     </Button>
@@ -647,11 +664,11 @@ export default function ScholarReachPage() {
 
             {/* Step 2: Research Target */}
             <Card
-              className={
+              className={`transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 ${
                 researchData
                   ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20"
-                  : ""
-              }
+                  : "hover:border-primary/30"
+              }`}
             >
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -1044,6 +1061,15 @@ export default function ScholarReachPage() {
                   </div>
                 ) : emailDraft ? (
                   <>
+                    {/* Personalization Tip */}
+                    <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start gap-2">
+                      <span className="text-lg">💡</span>
+                      <div className="text-sm">
+                        <span className="font-medium text-amber-200">Make it yours!</span>
+                        <span className="text-muted-foreground"> Personalized emails get 2x more responses. Add specific details about why you&apos;re excited about this company.</span>
+                      </div>
+                    </div>
+
                     {/* To Field */}
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-muted-foreground">

@@ -28,7 +28,9 @@ export async function POST(req: Request) {
 
     console.log("[Generate] Calling OpenAI...");
     const systemPrompt = getPrompt("EMAIL_SYSTEM");
-    console.log("[Generate] Using system prompt:", systemPrompt);
+    const userPrompt = getPrompt("EMAIL_USER");
+    console.log("[Generate] Using system prompt:", systemPrompt.substring(0, 100) + "...");
+    console.log("[Generate] Using user prompt:", userPrompt.substring(0, 100) + "...");
 
     const { output } = await generateText({
       model: openai("gpt-4o"),
@@ -39,11 +41,21 @@ export async function POST(req: Request) {
         }),
       }),
       system: systemPrompt,
-      prompt: `
-      CANDIDATE: ${JSON.stringify(resumeData)}
-      STARTUP INTEL: ${JSON.stringify(targetIntel)}
-      TARGET ROLE: ${targetRole || "Software Engineer"}
-      RECIPIENT: ${pocName}
+      prompt: `${userPrompt}
+
+---
+
+CANDIDATE INFORMATION:
+${JSON.stringify(resumeData, null, 2)}
+
+STARTUP/COMPANY INTEL:
+${JSON.stringify(targetIntel, null, 2)}
+
+TARGET ROLE: ${targetRole || "Software Engineer"}
+RECIPIENT NAME: ${pocName}
+TONE: ${tone || "casual"}
+
+IMPORTANT: The email body MUST be between 150-200 words. Do not write less than 150 words.
     `,
     });
 
