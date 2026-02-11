@@ -55,7 +55,7 @@ TARGET ROLE: ${targetRole || "Software Engineer"}
 RECIPIENT NAME: ${pocName}
 TONE: ${tone || "casual"}
 
-IMPORTANT: The email body MUST be between 150-200 words. Do not write less than 150 words.
+CRITICAL: The email body MUST be between 100-120 words ONLY. Count every word. Do NOT write more than 120 words.
     `,
     });
 

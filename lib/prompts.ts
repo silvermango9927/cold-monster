@@ -74,19 +74,23 @@ Are you free for a 15 minute call to chat more about your research areas and way
 Above are some examples of cool short emails. Adapt findings and patterns from these into a good cold email. Don't over-explain, every point you make should be clear and concise and unique.
 `,
 
-  EMAIL_USER: `Write a cold outreach email for a university student within 100-130 words based on the following information.
+  EMAIL_USER: `Write a cold outreach email for a university student. 
+
+CRITICAL REQUIREMENT: The email body MUST be between 100-120 words. Count every word carefully. DO NOT exceed 120 words under any circumstances.
 
 The email should:
 1. Have a compelling subject line and introduce yourself to the company in one or two lines
-2. Open with a hook related to the company
-3. Briefly introduce the student and their relevant background
-4. Connect their skills/experience to the company's needs
-5. Talk about yourself and a specific project that you've done (in the resume or Github) that can help be a good fit in the company.
-6. End with a clear ask (e.g., informational interview, application consideration)
+2. Connect your background/skills with what this company is working on, and how you can add value in 1 concise paragraph
+3. Finish with a short ask to have a brief conversation or informational interview in one line
 
 Adjust the tone based on the specified setting (formal, casual, or balanced).
 The format should be a short paragraph with an intro and purpose (casual), a small paragraph about how you can add value with your skills to their work, and a small paragraph about wanting to connect with them and how you're interested
 LESS IS MORE.
+
+WORD COUNT ENFORCEMENT:
+- Email body must be EXACTLY between 100-120 words
+- If you write more than 120 words, you have FAILED
+- Every word counts - be concise and impactful
 `,
 };
 
